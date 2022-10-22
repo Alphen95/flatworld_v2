@@ -46,7 +46,7 @@ class Player():
             self.sprites[f"{block_name}_corner_outer"] = self.sprites["ground_tiles"].subsurface(32*4,32*block_row,32,32)
 
         self.sprites["coal"] = self.sprites["ground_tiles"].subsurface(0,32*2,32,32)
-        self.sprites["malachite"] = self.sprites["ground_tiles"].subsurface(32,32*2,32,32)
+        self.sprites["chalcopyrite"] = self.sprites["ground_tiles"].subsurface(32,32*2,32,32)
         self.sprites["hematite"] = self.sprites["ground_tiles"].subsurface(32*2,32*2,32,32)
         self.sprites["cassiterite"] = self.sprites["ground_tiles"].subsurface(32*3,32*2,32,32)
         self.sprites["smitsonite"] = self.sprites["ground_tiles"].subsurface(32,32*2,32,32)

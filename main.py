@@ -24,13 +24,13 @@ world_generation_options = {
     "ores_max": 500,
     "ores":[
         ["coal", 25],
-        ["malachite", 20],
-        ["hematite", 20],
-        ["cassiterite", 15],
-        ["smitsonite", 15],
-        ["galenite", 10],
-        ["sulfur", 10],
-        ["uranium", 5]
+        ["chalcopyrite", 20], #copper pyrite, халькопирит (медный колчедан) CuFeS2
+        ["hematite", 20], #гематит Fe2O3
+        ["cassiterite", 15], #касситерит SnO2
+        ["sphalerite", 15], #сфалерит ZnS 
+        ["galenite", 10], #галенит PbS
+        ["sulfur", 10], #самородная сера S
+        ["uranium", 5] #природный уран 
     ],
 }
 
