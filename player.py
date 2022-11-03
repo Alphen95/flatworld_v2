@@ -7,7 +7,7 @@ import pygame as pg
 class Player():
     def __init__(self,screen,version):
         self.version = version 
-        self.speed = 0.5
+        self.speed = 1
         self.pos = [0,0]
         self.camera_pos = [0,0]
         self.offset = [0,0]
@@ -49,31 +49,28 @@ class Player():
         self.sprites["chalcopyrite"] = self.sprites["ground_tiles"].subsurface(32,32*2,32,32)
         self.sprites["hematite"] = self.sprites["ground_tiles"].subsurface(32*2,32*2,32,32)
         self.sprites["cassiterite"] = self.sprites["ground_tiles"].subsurface(32*3,32*2,32,32)
-        self.sprites["smitsonite"] = self.sprites["ground_tiles"].subsurface(32,32*2,32,32)
-        self.sprites["galenite"] = self.sprites["ground_tiles"].subsurface(32,32*2,32,32)
-        self.sprites["sulfur"] = self.sprites["ground_tiles"].subsurface(32,32*2,32,32)
-        self.sprites["uranium"] = self.sprites["ground_tiles"].subsurface(32,32*2,32,32)
+        self.sprites["sphalerite"] = self.sprites["ground_tiles"].subsurface(32*4,32*2,32,32)
+        self.sprites["galenite"] = self.sprites["ground_tiles"].subsurface(32*5,32*2,32,32)
+        self.sprites["sulfur"] = self.sprites["ground_tiles"].subsurface(32*6,32*2,32,32)
+        self.sprites["uranium"] = self.sprites["ground_tiles"].subsurface(32*7,32*2,32,32)
 
-    def draw(self,screen,clock,tick):
-        world_border = 20*16*2
+    def draw(self,screen,clock,tick,world_border):
         screen.fill(self.BG_GRAY)
-        fps_counter = self.font.render("fps: "+str(int(clock.get_fps())), False, ((255 if clock.get_fps() < 60 else 0), (255 if clock.get_fps() > 15 else 0), 0))
-        screen.blit(fps_counter, (0, self.h-32))
         pg.draw.rect(screen,(160,160,160),[self.w_indent,self.h_indent,self.tile_size*16,self.tile_size*16])
         for draw_x in range(0,17):
             for draw_y in range(0,17):
-                if f"{draw_x+self.pos[0]}_{draw_y+self.pos[1]}" in self.world["obj"]:
-                    i = f"{draw_x+self.pos[0]}_{draw_y+self.pos[1]}"
-                    pos = [draw_x-(self.offset[0]%32/32),draw_y-(self.offset[1]%32/32)]
-                    exact_pos = [draw_x+self.pos[0],draw_y+self.pos[1]]
+                if f"{draw_x+(self.pos[0]-7 if self.pos[0] >= 7 else 0)}_{draw_y+(self.pos[1]-7 if self.pos[1] >= 7 else 0)}" in self.world["obj"]:
+                    i = f"{draw_x+(self.pos[0]-7 if self.pos[0] >= 7 else 0)}_{draw_y+(self.pos[1]-7 if self.pos[1] >= 7 else 0)}"
+                    pos = [draw_x-((self.offset[0]%32/32) if (self.pos[0] >= 7 and self.pos[0] < world_border-10) else 0),draw_y-((self.offset[1]%32/32) if (self.pos[1] > 7 and self.pos[1] < world_border-9) else 0)]
+                    exact_pos = [draw_x+(self.pos[0]-7 if self.pos[0] >= 7 else 0),draw_y+(self.pos[1]-7 if self.pos[1] >= 7 else 0)]
                     screen.blit(pg.transform.scale(self.sprites[self.world["obj"][i]["block"]],(self.tile_size,self.tile_size)),(self.w_indent+self.tile_size*(pos[0]),self.h_indent+self.tile_size*(pos[1])))
                     if self.world["obj"][i]["block"] in self.connectable_blocks_condition:
                         sides, corners = [],[]
                         sides = [
                             True if exact_pos[1] > 0 and f"{exact_pos[0]}_{exact_pos[1]-1}" in self.world["obj"] and (self.world["obj"][f"{exact_pos[0]}_{exact_pos[1]-1}"]["block"] in ["grass","dirt"] and self.world["obj"][i]["block"] in ["grass","dirt"] or self.world["obj"][f"{exact_pos[0]}_{exact_pos[1]-1}"]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] == self.world["obj"][f"{exact_pos[0]}_{exact_pos[1]-1}"]["block"]) else False,
-                            True if exact_pos[1] < world_border and f"{exact_pos[0]+1}_{exact_pos[1]}" in self.world["obj"] and (self.world["obj"][f"{exact_pos[0]+1}_{exact_pos[1]}"]["block"] in ["grass","dirt"] and self.world["obj"][i]["block"] in ["grass","dirt"] or self.world["obj"][f"{exact_pos[0]+1}_{exact_pos[1]}"]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] == self.world["obj"][f"{exact_pos[0]+1}_{exact_pos[1]}"]["block"]) else False,
-                            True if exact_pos[0] < world_border and f"{exact_pos[0]}_{exact_pos[1]+1}" in self.world["obj"] and (self.world["obj"][f"{exact_pos[0]}_{exact_pos[1]+1}"]["block"] in ["grass","dirt"] and self.world["obj"][i]["block"] in ["grass","dirt"] or self.world["obj"][f"{exact_pos[0]}_{exact_pos[1]+1}"]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] == self.world["obj"][f"{exact_pos[0]}_{exact_pos[1]+1}"]["block"]) else False,
-                            True if exact_pos[1] > 0 and f"{exact_pos[0]-1}_{exact_pos[1]}" in self.world["obj"] and (self.world["obj"][f"{exact_pos[0]-1}_{exact_pos[1]}"]["block"] in ["grass","dirt"] and self.world["obj"][i]["block"] in ["grass","dirt"] or self.world["obj"][f"{exact_pos[0]-1}_{exact_pos[1]}"]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] == self.world["obj"][f"{exact_pos[0]-1}_{exact_pos[1]}"]["block"]) else False
+                            True if exact_pos[0] < world_border and f"{exact_pos[0]+1}_{exact_pos[1]}" in self.world["obj"] and (self.world["obj"][f"{exact_pos[0]+1}_{exact_pos[1]}"]["block"] in ["grass","dirt"] and self.world["obj"][i]["block"] in ["grass","dirt"] or self.world["obj"][f"{exact_pos[0]+1}_{exact_pos[1]}"]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] == self.world["obj"][f"{exact_pos[0]+1}_{exact_pos[1]}"]["block"]) else False,
+                            True if exact_pos[1] < world_border and f"{exact_pos[0]}_{exact_pos[1]+1}" in self.world["obj"] and (self.world["obj"][f"{exact_pos[0]}_{exact_pos[1]+1}"]["block"] in ["grass","dirt"] and self.world["obj"][i]["block"] in ["grass","dirt"] or self.world["obj"][f"{exact_pos[0]}_{exact_pos[1]+1}"]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] == self.world["obj"][f"{exact_pos[0]}_{exact_pos[1]+1}"]["block"]) else False,
+                            True if exact_pos[0] > 0 and f"{exact_pos[0]-1}_{exact_pos[1]}" in self.world["obj"] and (self.world["obj"][f"{exact_pos[0]-1}_{exact_pos[1]}"]["block"] in ["grass","dirt"] and self.world["obj"][i]["block"] in ["grass","dirt"] or self.world["obj"][f"{exact_pos[0]-1}_{exact_pos[1]}"]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] == self.world["obj"][f"{exact_pos[0]-1}_{exact_pos[1]}"]["block"]) else False
                         ]
                         corners = [
                             True if exact_pos[0] > 0 and exact_pos[1] > 0 and f"{exact_pos[0]-1}_{exact_pos[1]-1}" in self.world["obj"] and (self.world["obj"][f"{exact_pos[0]-1}_{exact_pos[1]-1}"]["block"] in ["grass","dirt"] and self.world["obj"][i]["block"] in ["grass","dirt"] or self.world["obj"][f"{exact_pos[0]-1}_{exact_pos[1]-1}"]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] in self.connectable_blocks_condition and self.world["obj"][i]["block"] == self.world["obj"][f"{exact_pos[0]-1}_{exact_pos[1]-1}"]["block"]) else False,
@@ -97,15 +94,22 @@ class Player():
                         if sides[3] and sides[2] and corners[3]:screen.blit(pg.transform.scale(pg.transform.rotate(self.sprites[f"{self.world['obj'][i]['block']}_corner_full"],90),(self.tile_size,self.tile_size)),(self.w_indent+self.tile_size*(pos[0]),self.h_indent+self.tile_size*(pos[1])))
                         elif not(sides[3] or sides[2] or corners[3]) or not(sides[3] or sides[2]):screen.blit(pg.transform.scale(pg.transform.rotate(self.sprites[f"{self.world['obj'][i]['block']}_corner"],90),(self.tile_size,self.tile_size)),(self.w_indent+self.tile_size*(pos[0]),self.h_indent+self.tile_size*(pos[1])))
                         elif sides[3] and sides[2] and not corners[3]:screen.blit(pg.transform.scale(pg.transform.rotate(self.sprites[f"{self.world['obj'][i]['block']}_corner_outer"],90),(self.tile_size,self.tile_size)),(self.w_indent+self.tile_size*(pos[0]),self.h_indent+self.tile_size*(pos[1])))
-        screen.blit(pg.transform.scale(self.sprites["player"],(self.tile_size,self.tile_size)),((self.offset[0]*self.tile_size/32)+self.w_indent,(self.offset[1]*self.tile_size/32)+self.h_indent))
+        player_pos = [self.offset[0],self.offset[1]]
+        if self.pos[0] >7 or self.pos[0]==7 and self.offset[0]%32>=16:
+            player_pos[0] = 7.5*32
+            if self.offset[0]/32 >= world_border-8.5:
+                player_pos[0]+=self.offset[0]%((world_border-8.5)*32)
+        if self.pos[1] >7 or self.pos[1]==7 and self.offset[1]%32>=16:
+            player_pos[1] = 7.5*32
+        screen.blit(pg.transform.scale(self.sprites["player"],(self.tile_size,self.tile_size)),((player_pos[0]*self.tile_size/32)+self.w_indent,(player_pos[1]*self.tile_size/32)+self.h_indent))
         pg.draw.rect(screen,self.BG_GRAY,(0,0,self.w_indent,self.h))
         pg.draw.rect(screen,self.BG_GRAY,(self.w_indent+self.tile_size*16,0,self.w_indent,self.h))
         pg.draw.rect(screen,self.BG_GRAY,(0,0,self.w,self.h_indent))
         pg.draw.rect(screen,self.BG_GRAY,(0,self.h_indent+self.tile_size*16,self.w,self.h_indent))
-        for i in range(0,16):
-            for l in range(0,16):
-                text = self.font.render(f"{self.hexadecimal[i]}{self.hexadecimal[l]}",True,(255,255,255))
-                screen.blit(text,(self.w_indent+self.tile_size*i,self.h_indent+self.tile_size*l))
+        #for i in range(0,16):
+        #    for l in range(0,16):
+        #        text = self.font.render(f"{self.hexadecimal[i]}{self.hexadecimal[l]}",True,(255,255,255))
+        #        screen.blit(text,(self.w_indent+self.tile_size*i,self.h_indent+self.tile_size*l))
         pg.draw.rect(screen,(50,50,50),(0,self.h/2-36,136,72))
         pg.draw.rect(screen,(0,0,0),(4,self.h/2-32,128,64))
         screen.blit(pg.transform.scale(self.sprites["hud_energy"],(64,64)),(4,self.h/2-32))
@@ -117,26 +121,29 @@ class Player():
                 screen.blit(pg.transform.scale(self.sprites[f"item_{self.inventory[i][0]}_{self.inventory[i][1]}"],(128,128)),(self.w-128,self.h/2-128*((len(self.inventory))/2-i)))
         version = self.font.render(self.version,True,(0,0,0))
         screen.blit(version,[0,0])
-        version = self.font.render(str(self.pos),True,(0,0,0))
+        version = self.font.render(f"x:{self.offset[0]/32} y:{self.offset[1]/32}",True,(0,0,0))
         screen.blit(version,[0,30])
+        
+        fps_counter = self.font.render("fps: "+str(int(clock.get_fps())), False, ((255 if clock.get_fps() < 60 else 0), (255 if clock.get_fps() > 15 else 0), 0))
+        screen.blit(fps_counter, (0, self.h-32))
 
         pg.display.flip()
 
     def click_handler(self):
         pass
 
-    def key_handler(self,pressed):
+    def key_handler(self,pressed,world_border):
         if pressed[pg.K_UP] and self.offset[1] > 0:
             self.offset[1] -= self.speed
-        if pressed[pg.K_DOWN] and self.offset[1] < 20*16*2*32:
+        if pressed[pg.K_DOWN] and self.offset[1] < (world_border-1)*32:
             self.offset[1] += self.speed
         if pressed[pg.K_LEFT] and self.offset[0] > 0:
             self.offset[0] -= self.speed
-        if pressed[pg.K_RIGHT] and self.offset[0] < 20*16*2*32:
+        if pressed[pg.K_RIGHT] and self.offset[0] < (world_border-1)*32:
             self.offset[0] += self.speed
-        self.pos = [int(self.offset[0]/32),int(self.offset[1]/32)]
+        self.pos = [world_border-10 if int(self.offset[0]/32)>=world_border-10 else int(self.offset[0]/32),world_border-10 if int(self.offset[1]/32)>=world_border-10 else int(self.offset[1]/32)]
 
-    def update(self,screen,clock,tick,mouse,keys):
+    def update(self,screen,clock,tick,mouse,keys,world_border):
         tile_updates = []
-        self.key_handler(keys)
-        self.draw(screen,clock,tick)
+        self.key_handler(keys,world_border)
+        self.draw(screen,clock,tick,world_border)

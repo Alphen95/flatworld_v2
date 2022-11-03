@@ -11,17 +11,17 @@ screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
 tick = 0
 clock = pg.time.Clock()
 timers = {}
-version = "v(-0.1.1) movement test"
+version = "v(-0.1.3) ore graphics update"
 world = {}
 players = []
 world_generation_options = {
-    "world_size": 20*16*2,
-    "bushes_min": 100,
-    "bushes_max": 400,
+    "world_size": 16*16*2,
+    "bushes_min": 400,
+    "bushes_max": 1600,
     "puddles_min": 10,
     "puddles_max": 30,
-    "ores_min": 100,
-    "ores_max": 500,
+    "ores_min": 1000,
+    "ores_max": 3000,
     "ores":[
         ["coal", 25],
         ["chalcopyrite", 20], #copper pyrite, халькопирит (медный колчедан) CuFeS2
@@ -48,11 +48,13 @@ def generate_world():
     
     ores_dict = []
     for ore in world_generation_options["ores"]:
-        for i in range(0,ore[1]+1):
+        for i in range(0,ore[1]):
             ores_dict.append(ore[0])
-    for i in range(random.randint(0,2)):
-        point = [random.randint(0,world_generation_options["world_size"]-1),random.randint(0,world_generation_options["world_size"]-1)]
+    for i in range(random.randint(world_generation_options["ores_min"],world_generation_options["ores_max"])):
+        points = [random.randint(0,world_generation_options["world_size"]-1),random.randint(0,world_generation_options["world_size"]-1)]
+        pos = f"{points[0]}_{points[1]}"
         world["obj"][pos] = {"block":random.choice(ores_dict)}
+        print(pos,world["obj"][pos])
 
     return world
 
@@ -79,7 +81,7 @@ while working:
                 display_array["obj"][block_pos] = {"block":"concrete"}
     '''
     for player in players:
-        player.update(screen,clock,tick,(pg.mouse.get_pos(),pg.mouse.get_pressed()),pg.key.get_pressed())
+        player.update(screen,clock,tick,(pg.mouse.get_pos(),pg.mouse.get_pressed()),pg.key.get_pressed(),world_generation_options["world_size"])
     clock.tick()
     tick += 60/clock.get_fps() if clock.get_fps() != 0 else 1
     for timer in timers:
