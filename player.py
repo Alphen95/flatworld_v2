@@ -7,9 +7,8 @@ import pygame as pg
 class Player():
     def __init__(self,screen,version):
         self.version = version 
-        self.speed = 1
+        self.speed = 2
         self.pos = [0,0]
-        self.camera_pos = [0,0]
         self.offset = [0,0]
         self.font = pg.font.Font(os.path.join("res","verdana.ttf"), 16)
         self.energy = 100
@@ -27,6 +26,7 @@ class Player():
         self.h_indent = (self.h-self.tile_size*16)/2
         self.BG_GRAY = (115,115,115)
         self.sprites = {}
+        self.old_pressed = []
 
     def load_sprites(self):
         sprites_filenames = os.listdir("res")
@@ -57,11 +57,11 @@ class Player():
     def draw(self,screen,clock,tick,world_border):
         screen.fill(self.BG_GRAY)
         pg.draw.rect(screen,(160,160,160),[self.w_indent,self.h_indent,self.tile_size*16,self.tile_size*16])
-        for draw_x in range(0,17):
-            for draw_y in range(0,17):
+        for draw_x in range(-1,17):
+            for draw_y in range(-1,17):
                 if f"{draw_x+(self.pos[0]-7 if self.pos[0] >= 7 else 0)}_{draw_y+(self.pos[1]-7 if self.pos[1] >= 7 else 0)}" in self.world["obj"]:
                     i = f"{draw_x+(self.pos[0]-7 if self.pos[0] >= 7 else 0)}_{draw_y+(self.pos[1]-7 if self.pos[1] >= 7 else 0)}"
-                    pos = [draw_x-((self.offset[0]%32/32) if (self.pos[0] >= 7 and self.pos[0] < world_border-10) else 0),draw_y-((self.offset[1]%32/32) if (self.pos[1] > 7 and self.pos[1] < world_border-9) else 0)]
+                    pos = [draw_x-(((self.offset[0]%32-16)/32) if (self.offset[0]/32 >= 7.5 and self.offset[0]/32 < world_border-8.5) else 0),draw_y-(((self.offset[1]%32-16)/32) if (self.offset[1]/32 >= 7.5 and self.offset[1]/32 < world_border-8.5) else 0)]
                     exact_pos = [draw_x+(self.pos[0]-7 if self.pos[0] >= 7 else 0),draw_y+(self.pos[1]-7 if self.pos[1] >= 7 else 0)]
                     screen.blit(pg.transform.scale(self.sprites[self.world["obj"][i]["block"]],(self.tile_size,self.tile_size)),(self.w_indent+self.tile_size*(pos[0]),self.h_indent+self.tile_size*(pos[1])))
                     if self.world["obj"][i]["block"] in self.connectable_blocks_condition:
@@ -101,6 +101,8 @@ class Player():
                 player_pos[0]+=self.offset[0]%((world_border-8.5)*32)
         if self.pos[1] >7 or self.pos[1]==7 and self.offset[1]%32>=16:
             player_pos[1] = 7.5*32
+            if self.offset[1]/32 >= world_border-8.5:
+                player_pos[1]+=self.offset[1]%((world_border-8.5)*32)
         screen.blit(pg.transform.scale(self.sprites["player"],(self.tile_size,self.tile_size)),((player_pos[0]*self.tile_size/32)+self.w_indent,(player_pos[1]*self.tile_size/32)+self.h_indent))
         pg.draw.rect(screen,self.BG_GRAY,(0,0,self.w_indent,self.h))
         pg.draw.rect(screen,self.BG_GRAY,(self.w_indent+self.tile_size*16,0,self.w_indent,self.h))
@@ -129,21 +131,36 @@ class Player():
 
         pg.display.flip()
 
-    def click_handler(self):
-        pass
+    def click_handler(self,click_pos,pressed,world_border):
+        blockchanges = [{}]
+        if pressed[0] or pressed[2]:
+            if click_pos[0] > self.w_indent and click_pos[0] < self.w_indent+self.tile_size*16 and click_pos[1] > self.h_indent and click_pos[1] < self.h_indent+self.tile_size*16:
+                x_click = int((click_pos[0]-self.w_indent+((self.offset[0]%32*self.tile_size/32) if (self.pos[0] >= 7 and self.pos[0] < world_border-10) else 0))/self.tile_size)+(self.pos[0]-7 if self.pos[0] >= 7 else 0)
+                y_click = int((click_pos[1]-self.h_indent+((self.offset[1]%32*self.tile_size/32) if (self.pos[1] >= 7 and self.pos[1] < world_border-10) else 0))/self.tile_size)+(self.pos[1]-7 if self.pos[1] >= 7 else 0)
+                #print(x_click)
+                block_pos = f"{x_click}_{y_click}"
+                print(block_pos)
+                blockchanges = [{"type":"remove","pos":block_pos}]
+        return blockchanges
 
     def key_handler(self,pressed,world_border):
         if pressed[pg.K_UP] and self.offset[1] > 0:
             self.offset[1] -= self.speed
         if pressed[pg.K_DOWN] and self.offset[1] < (world_border-1)*32:
             self.offset[1] += self.speed
-        if pressed[pg.K_LEFT] and self.offset[0] > 0:
+        if pressed[pg.K_LEFT] and self.offset[0] > 0: #and not self.old_pressed[pg.K_LEFT]:
             self.offset[0] -= self.speed
-        if pressed[pg.K_RIGHT] and self.offset[0] < (world_border-1)*32:
+        if pressed[pg.K_RIGHT] and self.offset[0] < (world_border-1)*32: # and not self.old_pressed[pg.K_RIGHT]:
             self.offset[0] += self.speed
-        self.pos = [world_border-10 if int(self.offset[0]/32)>=world_border-10 else int(self.offset[0]/32),world_border-10 if int(self.offset[1]/32)>=world_border-10 else int(self.offset[1]/32)]
+        self.pos = [world_border-9 if int(self.offset[0]/32)>=world_border-9 else int(self.offset[0]/32),world_border-9 if int(self.offset[1]/32)>=world_border-9 else int(self.offset[1]/32)]
 
-    def update(self,screen,clock,tick,mouse,keys,world_border):
-        tile_updates = []
+    def update(self,screen,clock,tick,mouse,keys,world_border,changes):
+        for change in changes:
+            if change != {}:
+                if change["type"] == "remove" and change["pos"] in self.world["obj"]:
+                    self.world["obj"].pop(change["pos"])
         self.key_handler(keys,world_border)
+        tile_updates = self.click_handler(mouse[0],mouse[1],world_border)
         self.draw(screen,clock,tick,world_border)
+        self.old_pressed = keys
+        return tile_updates

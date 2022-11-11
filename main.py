@@ -11,11 +11,11 @@ screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
 tick = 0
 clock = pg.time.Clock()
 timers = {}
-version = "v(-0.1.3) ore graphics update"
+version = "v(-0.1.4) 'i wanted that to be the grapics update but i guess it's the movement fix update now' update"
 world = {}
 players = []
 world_generation_options = {
-    "world_size": 16*16*2,
+    "world_size": 1*16*2,
     "bushes_min": 400,
     "bushes_max": 1600,
     "puddles_min": 10,
@@ -30,11 +30,13 @@ world_generation_options = {
         ["sphalerite", 15], #сфалерит ZnS 
         ["galenite", 10], #галенит PbS
         ["sulfur", 10], #самородная сера S
-        ["uranium", 5] #природный уран 
+        ["uranium", 5] #природный уран 235U
     ],
 }
 
 players.append(Player(screen,version))
+players[0].speed = 2
+players[0].offset = [32*20,0]
 
 def generate_world():
     world = {"obj":{}}
@@ -57,11 +59,13 @@ def generate_world():
         print(pos,world["obj"][pos])
 
     return world
-
-players[0].world = generate_world()
+world = generate_world()
+players[0].world = world
 players[0].load_sprites()
 
 working = True
+global_changes = []
+player_global_changes = []
 while working:
 
     for evt in pg.event.get():
@@ -71,17 +75,18 @@ while working:
             if evt.key == pg.K_r:
                 players[0].display_array = generate_world()
 
-    '''
-    if [0] or pg.mouse.get_pressed()[2]:
-        if click_pos[0] > w_indent and click_pos[0] < w_indent+tile_size*16 and click_pos[1] > h_indent and click_pos[1] < h_indent+tile_size*16:
-            block_pos = f"{int((click_pos[1]-h_indent)/tile_size)}_{int((click_pos[0]-w_indent)/tile_size)}"
-            if pg.mouse.get_pressed()[0] and block_pos in display_array["obj"]:
-                display_array["obj"].pop(block_pos)
-            elif pg.mouse.get_pressed()[2]:
-                display_array["obj"][block_pos] = {"block":"concrete"}
-    '''
     for player in players:
-        player.update(screen,clock,tick,(pg.mouse.get_pos(),pg.mouse.get_pressed()),pg.key.get_pressed(),world_generation_options["world_size"])
+        block_changes = player.update(screen,clock,tick,(pg.mouse.get_pos(),pg.mouse.get_pressed()),pg.key.get_pressed(),world_generation_options["world_size"],player_global_changes)
+        global_changes.append(block_changes[0])
+    player_global_changes = []
+    player_global_changes = global_changes.copy()
+    #print(player_global_changes)
+    for change in player_global_changes:
+        if change != {}:
+            if change["type"] == "remove" and change["pos"] in world["obj"]:
+                world["obj"].pop(change["pos"])
+    global_changes = []
+
     clock.tick()
     tick += 60/clock.get_fps() if clock.get_fps() != 0 else 1
     for timer in timers:
