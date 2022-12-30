@@ -9,15 +9,20 @@ pg.init()
 screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
 
 tick = 0
+c_tick = 0
 clock = pg.time.Clock()
 timers = {}
-version = "v(-0.1.4) 'i wanted that to be the grapics update but i guess it's the movement fix update now' update"
+version = "v(-0.1.5) 'display scaling and amost completely player removing' update"
 world = {}
 players = []
+camera_options = {
+    "display_tiles":16,
+    "hitboxes":False
+}
 world_generation_options = {
-    "world_size": 1*16*2,
-    "bushes_min": 400,
-    "bushes_max": 1600,
+    "world_size": 10*16*2,
+    "bushes_min": 0,
+    "bushes_max": 0,
     "puddles_min": 10,
     "puddles_max": 30,
     "ores_min": 1000,
@@ -34,9 +39,9 @@ world_generation_options = {
     ],
 }
 
-players.append(Player(screen,version))
+players.append(Player(screen,version,camera_options))
 players[0].speed = 2
-players[0].offset = [32*20,0]
+players[0].offset = [0,0]
 
 def generate_world():
     world = {"obj":{}}
@@ -56,12 +61,15 @@ def generate_world():
         points = [random.randint(0,world_generation_options["world_size"]-1),random.randint(0,world_generation_options["world_size"]-1)]
         pos = f"{points[0]}_{points[1]}"
         world["obj"][pos] = {"block":random.choice(ores_dict)}
-        print(pos,world["obj"][pos])
 
     return world
 world = generate_world()
+world["obj"]["0_0"] = {"block":"planks"}
+world["obj"]["16_9"] = {"block":"planks"}
+world["obj"]["0_1"] = {"block":"conveyor","rot":0}
 players[0].world = world
 players[0].load_sprites()
+
 
 working = True
 global_changes = []
@@ -76,7 +84,7 @@ while working:
                 players[0].display_array = generate_world()
 
     for player in players:
-        block_changes = player.update(screen,clock,tick,(pg.mouse.get_pos(),pg.mouse.get_pressed()),pg.key.get_pressed(),world_generation_options["world_size"],player_global_changes)
+        block_changes = player.update(screen,clock,c_tick,tick,(pg.mouse.get_pos(),pg.mouse.get_pressed()),pg.key.get_pressed(),world_generation_options["world_size"],player_global_changes)
         global_changes.append(block_changes[0])
     player_global_changes = []
     player_global_changes = global_changes.copy()
@@ -89,10 +97,13 @@ while working:
 
     clock.tick()
     tick += 60/clock.get_fps() if clock.get_fps() != 0 else 1
+    c_tick += 60/clock.get_fps() if clock.get_fps() != 0 else 1
     for timer in timers:
         if timers[timer] >0: timers[timer]-=(60/clock.get_fps() if clock.get_fps() != 0 else 1)
     if tick >= 60: 
         tick -= 60
+    if c_tick >= 239:
+        c_tick -= 0
     if not working:
         pg.quit()
 
